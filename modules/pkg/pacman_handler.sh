@@ -7,7 +7,7 @@ function install_pacman_pkgs() {
   echo -e "\e[32mSelect packages to install\e[0m"
   echo -e "\e[33mNote: To select multiple packages use SHIFT+TAB\e[0m"
 
-  packages=$(pacman -Sl | awk '{print $2}' | fzf --multi --height 50% --border --prompt "Select packages: ")
+  packages=$(pacman -Sl | awk '{print $2}' | sort -u | fzf --multi --height 50% --border --prompt "Select packages: ")
 
   if [[ -n "$packages" ]]; then
     print_pacman_pkg_info "$packages"
@@ -37,6 +37,7 @@ function remove_pacman_pkgs() {
 }
 
 function update_pacman_pkgs() {
+  clear
   echo -e "\e[33mUpdating repo packages...\e[0m"
   echo -e
 
