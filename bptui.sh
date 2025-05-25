@@ -87,7 +87,7 @@ function main() {
     clear
 
     echo -e "\e[4mSelect Action\e[24m"
-    ui_widget_select -k install_pkgs open_update_pkgs_menu open_remove_pkgs_menu downgrade_packages open_options exit_app -i "Install Package/s" "Update Package/s" "Remove Package/s" "Downgrade" "Options" "Exit"
+    ui_widget_select -k install_pkgs open_update_pkgs_menu open_remove_pkgs_menu downgrade_packages open_options exit_app -i "Install Package/s" "Update Package/s" "Remove Package/s" "Downgrade Package/s" "Options" "Exit"
 
     if [[ "${UI_WIDGET_RC}" == "open_options" ]]; then
       open_options
