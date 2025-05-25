@@ -128,19 +128,20 @@ function downgrade_pacman_packages() {
   clear
 }
 
-#TODO: Implement
 ignore_packages() {
   clear
 
   echo -e "\e[32mSelect packages to ignore\e[0m"
   echo -e "\e[33mNote: Use SHIFT+TAB to select multiple packages\e[0m"
 
-  packages=$(pacman -Q | awk '{print $1}' | sort -u | fzf --multi --height 50% --border --prompt "Select packages: ")
+  # packages=$(pacman -Q | awk '{print $1}' | sort -u | fzf --multi --height 50% --border --prompt "Select packages: ")
 
   if [[ -n "$packages" ]]; then
     echo -e "\e[34mAdding packages to IgnorePkg...\e[0m"
 
     sudo cp /etc/pacman.conf /etc/pacman.conf.bak
+
+    #TODO: Test if it works, it should also check if this attribute is not already uncommentend.
 
     sudo sed -i "/^#IgnorePkg/ c\IgnorePkg=$packages" /etc/pacman.conf
 

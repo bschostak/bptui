@@ -74,7 +74,16 @@ function open_remove_pkgs_menu() {
 
 function downgrade_packages() {
   downgrade_pacman_packages
-  #TODO: Add ignore packages function
+
+  if [ -n "$packages" ]; then
+    read -p "Do you want to add packages to ignore list? (y/n): " user_input
+
+    if [[ "$user_input" == "y" ]]; then
+      ignore_packages
+    fi
+  fi
+
+  read -p "Press any key to continue..." -n 1
 }
 
 function open_options() {
