@@ -1,26 +1,14 @@
 #!/bin/bash
 
-source "modules/pkg/info_manager.sh"
-
 function install_pacman_pkgs() {
-  clear
+  packages=("$@")
 
-  echo -e
-  echo -e "\e[32mSelect packages to install\e[0m"
-  echo -e "\e[33mNote: To select multiple packages use SHIFT+TAB\e[0m"
-
-  packages=$(pacman -Sl | awk '{print $2}' | sort -u | fzf --multi --height 50% --border --prompt "Select packages: ")
-
-  if [[ -n "$packages" ]]; then
-    print_pacman_pkg_info "$packages"
-
-    echo "Installing selected pkgs: $packages"
-    sudo pacman -S --needed $(echo "$packages" | tr '\n' ' ') || echo "Some packages may not be available."
+  if [[ -n "${packages[*]}" ]]; then
+    echo "Installing selected pkgs: ${packages[*]}"
+    sudo pacman -S --needed "${packages[@]}" || echo "Some packages may not be available."
   else
     echo "No packages selected."
   fi
-
-  clear
 }
 
 function remove_pacman_pkgs() {
@@ -43,8 +31,6 @@ function remove_pacman_pkgs() {
 }
 
 function update_pacman_pkgs() {
-  clear
-
   echo -e
   echo -e "\e[33mUpdating repo packages...\e[0m"
   echo -e
@@ -53,9 +39,6 @@ function update_pacman_pkgs() {
 
   echo -e "\e[32mRepo packages updated.\e[0m"
   echo -e
-  read -p "Press any key to continue..." -n 1
-
-  clear
 }
 
 function clean_pacman_cache() {

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 source "$HOME/.config/bptui/config.sh"
 
@@ -8,15 +8,21 @@ source "modules/pkg/paru_handler.sh"
 
 function update_all_pkgs() {
     if [[ "$USE_PACMAN" == true ]]; then
+    clear
     update_pacman_pkgs
+    read -p "Press any key to continue..." -n 1
     fi
 
     if [[ "$USE_FLATPAK" == true ]]; then
+    clear
     update_flatpak_pkgs
+    read -p "Press any key to continue..." -n 1
     fi
     
     if [[ "$USE_PARU" == true ]]; then
+    clear
     update_paru_pkgs
+    read -p "Press any key to continue..." -n 1
     fi
     
     if [[ "$USE_YAY" == true ]]; then

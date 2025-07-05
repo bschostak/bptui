@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 source "modules/config/config_controller.sh"
 source "modules/config/option_handler.sh"
@@ -9,33 +9,45 @@ source "modules/pkg/flatpak_handler.sh"
 source "modules/pkg/paru_handler.sh"
 
 source "modules/pkg/update_manager.sh"
+source "modules/pkg/install_manager.sh"
 
 setup_config
 
 source "$HOME/.config/bptui/config.sh"
 
-function install_pkgs() {
-  clear
+function print_logo() {
+  echo -e "\n\e[1;36m"
+  echo "██████╗ ██████╗ ████████╗██╗   ██╗██╗"
+  echo "██╔══██╗██╔══██╗╚══██╔══╝██║   ██║██║"
+  echo "██████╔╝██████╔╝   ██║   ██║   ██║██║"
+  echo "██╔══██╗██╔═══╝    ██║   ██║   ██║██║"
+  echo "██████╔╝██║        ██║   ╚██████╔╝██║"
+  echo "╚═════╝ ╚═╝        ╚═╝    ╚═════╝ ╚═╝"
+  echo -e "\e[0m"
+}
 
-  echo -e "\e[4mChoose PKG Manager\e[24m"
-  ui_widget_select -k install_pacman_pkgs install_flatpak_pkgs install_paru_pkgs main -i "Pacman" "Flatpak" "Paru" "Go Back"
+# function install_pkgs() {
+#   clear
 
-  if [[ "${UI_WIDGET_RC}" == "install_pacman_pkgs" ]]; then
-    install_pacman_pkgs
-    read -p "Press any key to continue..." -n 1
-  elif [[ "${UI_WIDGET_RC}" == "install_flatpak_pkgs" ]]; then
-    install_flatpak_pkgs
-    read -p "Press any key to continue..." -n 1
-  elif [[ "${UI_WIDGET_RC}" == "install_paru_pkgs" ]]; then
-    install_paru_pkgs
-    read -p "Press any key to continue..." -n 1
-  elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
-    return
-  fi
+#   echo -e "\e[4mChoose PKG Manager\e[24m"
+#   ui_widget_select -k install_pacman_pkgs install_flatpak_pkgs install_paru_pkgs main -i "Pacman" "Flatpak" "Paru" "Go Back"
+
+#   if [[ "${UI_WIDGET_RC}" == "install_pacman_pkgs" ]]; then
+#     install_pacman_pkgs
+#     read -p "Press any key to continue..." -n 1
+#   elif [[ "${UI_WIDGET_RC}" == "install_flatpak_pkgs" ]]; then
+#     install_flatpak_pkgs
+#     read -p "Press any key to continue..." -n 1
+#   elif [[ "${UI_WIDGET_RC}" == "install_paru_pkgs" ]]; then
+#     install_paru_pkgs
+#     read -p "Press any key to continue..." -n 1
+#   elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
+#     return
+#   fi
 
   # echo "Return code: $?"
   # echo "Selected item(s): ${UI_WIDGET_RC[@]}"
-}
+# }
 
 function open_update_pkgs_menu() {
   clear
@@ -95,13 +107,14 @@ function main() {
   while true; do
     clear
 
+    print_logo
     echo -e "\e[4mSelect Action\e[24m"
-    ui_widget_select -k install_pkgs open_update_pkgs_menu open_remove_pkgs_menu downgrade_packages open_options exit_app -i "Install Package/s" "Update Package/s" "Remove Package/s" "Downgrade Package/s" "Options" "Exit"
+    ui_widget_select -k install_packages open_update_pkgs_menu open_remove_pkgs_menu downgrade_packages open_options exit_app -i "Install Package/s" "Update Package/s" "Remove Package/s" "Downgrade Package/s" "Options" "Exit"
 
     if [[ "${UI_WIDGET_RC}" == "open_options" ]]; then
       open_options
-    elif [[ "${UI_WIDGET_RC}" == "install_pkgs" ]]; then
-      install_pkgs
+    elif [[ "${UI_WIDGET_RC}" == "install_packages" ]]; then
+      install_packages
     elif [[ "${UI_WIDGET_RC}" == "open_update_pkgs_menu" ]]; then
       open_update_pkgs_menu
     elif [[ "${UI_WIDGET_RC}" == "open_remove_pkgs_menu" ]]; then
