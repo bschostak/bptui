@@ -10,6 +10,7 @@ source "modules/pkg/paru_handler.sh"
 
 source "modules/pkg/update_manager.sh"
 source "modules/pkg/install_manager.sh"
+source "modules/pkg/remove_manager.sh"
 
 setup_config
 
@@ -25,29 +26,6 @@ function print_logo() {
   echo "╚═════╝ ╚═╝        ╚═╝    ╚═════╝ ╚═╝"
   echo -e "\e[0m"
 }
-
-# function install_pkgs() {
-#   clear
-
-#   echo -e "\e[4mChoose PKG Manager\e[24m"
-#   ui_widget_select -k install_pacman_pkgs install_flatpak_pkgs install_paru_pkgs main -i "Pacman" "Flatpak" "Paru" "Go Back"
-
-#   if [[ "${UI_WIDGET_RC}" == "install_pacman_pkgs" ]]; then
-#     install_pacman_pkgs
-#     read -p "Press any key to continue..." -n 1
-#   elif [[ "${UI_WIDGET_RC}" == "install_flatpak_pkgs" ]]; then
-#     install_flatpak_pkgs
-#     read -p "Press any key to continue..." -n 1
-#   elif [[ "${UI_WIDGET_RC}" == "install_paru_pkgs" ]]; then
-#     install_paru_pkgs
-#     read -p "Press any key to continue..." -n 1
-#   elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
-#     return
-#   fi
-
-  # echo "Return code: $?"
-  # echo "Selected item(s): ${UI_WIDGET_RC[@]}"
-# }
 
 function open_update_pkgs_menu() {
   clear
@@ -67,18 +45,12 @@ function open_remove_pkgs_menu() {
   clear
 
   echo -e "\e[4mRemove Packages\e[24m"
-  ui_widget_select -k remove_pacman_pkgs remove_flatpak_pkgs remove_snap_pkgs main -i "Pacman" "Flatpak" "Snap" "Go Back"
+  ui_widget_select -k remove_packages remove_pacman_all_pkgs main -i "Explicit installed" "Native installed" "Go Back"
 
-  if [[ "${UI_WIDGET_RC}" == "remove_pacman_pkgs" ]]; then
-    remove_pacman_pkgs
-    read -p "Press any key to continue..." -n 1
-  elif [[ "${UI_WIDGET_RC}" == "remove_flatpak_pkgs" ]]; then
-    remove_flatpak_pkgs
-    read -p "Press any key to continue..." -n 1
-  elif [[ "${UI_WIDGET_RC}" == "remove_snap_pkgs" ]]; then
-    echo "Snap is not supported yet."
-    #TODO: Implement remove_snap_pkgs
-    read -p "Press any key to continue..." -n 1
+  if [[ "${UI_WIDGET_RC}" == "remove_packages" ]]; then
+    remove_packages
+  elif [[ "${UI_WIDGET_RC}" == "remove_pacman_all_pkgs" ]]; then
+    remove_pacman_all_pkgs
   elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
     return
   fi

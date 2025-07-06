@@ -5,29 +5,42 @@ function install_pacman_pkgs() {
 
   if [[ -n "${packages[*]}" ]]; then
     echo "Installing selected pkgs: ${packages[*]}"
+    echo -e
     sudo pacman -S --needed "${packages[@]}" || echo "Some packages may not be available."
   else
     echo "No packages selected."
   fi
 }
 
-function remove_pacman_pkgs() {
+function remove_pacman_explicit_pkgs() {
+  packages=("$@")
+
+  if [[ -n "${packages[*]}" ]]; then
+    echo "Removing selected pkgs: $packages"
+    echo -e
+    sudo pacman -Rns $(echo "${packages[@]}" | tr '\n' ' ') || echo "Some packages may not be available."
+  else
+    echo "No packages selected."
+  fi
+}
+
+function remove_pacman_all_pkgs() {
   clear
 
-  echo -e
   echo -e "\e[32mSelect packages to remove\e[0m"
   echo -e "\e[33mNote: To select multiple packages use SHIFT+TAB\e[0m"
 
-  packages=$(pacman -Qe | awk '{print $1}' | fzf --multi --height 50% --border --prompt "Select packages: ")
+  packages=$(pacman -Q | awk '{print $1}' | fzf --multi --height 50% --border --prompt "Select packages: ")
 
   if [[ -n "$packages" ]]; then
-    echo "Installing selected pkgs: $packages"
+    echo "Removing selected pkgs: $packages"
+    echo -e
     sudo pacman -Rns $(echo "$packages" | tr '\n' ' ') || echo "Some packages may not be available."
   else
     echo "No packages selected."
   fi
-
-  clear
+  echo -e
+  read -p "Press any key to continue..." -n 1
 }
 
 function update_pacman_pkgs() {

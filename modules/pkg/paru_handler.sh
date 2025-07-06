@@ -5,6 +5,7 @@ function install_paru_pkgs() {
 
     if [[ -n "${packages[*]}" ]]; then
         echo "Installing selected pkgs: ${packages[*]}"
+        echo -e
         # shellcheck disable=SC2046
         paru -S --needed "${packages[@]}" || echo "Some packages may not be available."
     else

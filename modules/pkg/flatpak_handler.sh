@@ -13,16 +13,13 @@ function install_flatpak_pkgs() {
 }
 
 function remove_flatpak_pkgs() {
-  echo -e
-  echo -e "\e[32mSelect packages to remove\e[0m"
-  echo -e "\e[33mNote: To select multiple packages use SHIFT+TAB\e[0m"
+  packages=("$@")
 
-  packages=$(flatpak list | awk '{print $2}' | fzf --multi --height 50% --border --prompt "Select packages: ")
-
-  if [[ -n "$packages" ]]; then
-    echo "Removing selected pkgs: $packages"
+  if [[ -n "${packages[*]}" ]]; then
+    echo "Removing selected pkgs: '${packages[*]}'"
     # shellcheck disable=SC2046
-    flatpak uninstall $(echo "$packages" | tr '\n' ' ') || echo "Some packages may not be available."
+    flatpak uninstall $(echo "${packages[@]}" | tr '\n' ' ') || echo "Some packages may not be available."
+    echo -e
     echo "Removing unused dependencies..."
     flatpak uninstall --unused
   else
