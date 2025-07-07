@@ -59,7 +59,7 @@ function open_remove_pkgs_menu() {
 function downgrade_packages() {
   downgrade_pacman_packages
 
-  if [ -n "$packages" ]; then
+  if [ -n "$pacman_cached_packages" ]; then
     read -p "Do you want to add packages to ignore list? (y/n): " user_input
 
     if [[ "$user_input" == "y" ]]; then

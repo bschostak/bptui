@@ -83,46 +83,38 @@ function remove_orphan_packages() {
 
 #INFO: Needs refactoring
 function downgrade_pacman_packages() {
-  clear
-  echo -e
-  echo -e "\e[32mSelect packages to downgrade\e[0m"
-  echo -e "\e[33mNote: To select multiple packages use SHIFT+TAB\e[0m"
+  local packman_cached_packages=("$@")
+  local selected_versions=()
 
-  packages=$(pacman -Q | awk '{print $1}' | sort -u | fzf --multi --height 50% --border --prompt "Select packages: ")
-
-  if [[ -n "$packages" ]]; then
+  if [[ ${#packman_cached_packages[@]} -gt 0 ]]; then
     echo -e "\e[34mFetching available versions from cache...\e[0m"
 
-    selected_versions=""
-
-    for pkg in $packages; do
+    for pkg in "${packman_cached_packages[@]}"; do
       cached_versions=$(ls /var/cache/pacman/pkg/ | grep "^${pkg}-" | sort -V)
       if [[ -n "$cached_versions" ]]; then
         version=$(echo "$cached_versions" | fzf --height 30% --border --prompt "Select version for $pkg: ")
-        selected_versions="$selected_versions /var/cache/pacman/pkg/$version"
+        if [[ -n "$version" ]]; then
+          selected_versions+=("/var/cache/pacman/pkg/$version")
+        fi
       else
         echo -e "\e[31mNo cached versions found for $pkg\e[0m"
       fi
     done
 
-    if [[ -n "$selected_versions" ]]; then
+    if [[ ${#selected_versions[@]} -gt 0 ]]; then
       echo "Downgrading selected packages..."
-      sudo pacman -U --needed $selected_versions
-
-      read -p "Press any key to continue..." -n 1
+      sudo pacman -U --needed "${selected_versions[@]}"
     else
       echo "No versions selected. Exiting."
-
-      read -p "Press any key to continue..." -n 1
     fi
   else
     echo "No packages selected."
-
-    read -p "Press any key to continue..." -n 1
   fi
 
+  read -p "Press any key to continue..." -n 1
   clear
 }
+
 
 ignore_packages() {
   clear
@@ -130,21 +122,18 @@ ignore_packages() {
   echo -e "\e[32mSelect packages to ignore\e[0m"
   echo -e "\e[33mNote: Use SHIFT+TAB to select multiple packages\e[0m"
 
-  # packages=$(pacman -Q | awk '{print $1}' | sort -u | fzf --multi --height 50% --border --prompt "Select packages: ")
-
-  if [[ -n "$packages" ]]; then
+  if [[ -n "$pacman_cached_packages" ]]; then
     echo -e "\e[34mAdding packages to IgnorePkg...\e[0m"
 
     sudo cp /etc/pacman.conf /etc/pacman.conf.bak
 
-    #TODO: Test if it works, it should also check if this attribute is not already uncommentend.
-
-    sudo sed -i "/^#IgnorePkg/ c\IgnorePkg=$packages" /etc/pacman.conf
+    sudo sed -i "/^#IgnorePkg/ c\IgnorePkg=$pacman_cached_packages" /etc/pacman.conf
 
     echo -e "\e[32mPackages added to IgnorePkg successfully!\e[0m"
+    read -p "Press any key to continue..." -n 1
   else
     echo -e "\e[31mNo packages selected.\e[0m"
+    read -p "Press any key to continue..." -n 1
   fi
-
   clear
 }
