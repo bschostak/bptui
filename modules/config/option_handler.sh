@@ -7,7 +7,7 @@ declare -a PACKAGE_MANAGERS
 declare -a OPTIONS
 declare -a NEW_OPTIONS
 
-function get_pkg_mngrs_values() {
+get_pkg_mngrs_values() {
     if [[ "$USE_PACMAN" == true ]]; then
         PACKAGE_MANAGERS+=("is_pacman")
     fi
@@ -25,7 +25,7 @@ function get_pkg_mngrs_values() {
     fi
 }
 
-function get_options_values() {
+get_options_values() {
     if [[ "$PRINT_PKG_INFO" == true ]]; then
         OPTIONS+=("is_show_pkg_info")
     fi
@@ -34,7 +34,7 @@ function get_options_values() {
     fi
 }
 
-function set_pkg_mngrs_values() {
+set_pkg_mngrs_values() {
     sed -i 's/USE_PACMAN=true/USE_PACMAN=false/' "$HOME/.config/bptui/config.sh"
     sed -i 's/USE_FLATPAK=true/USE_FLATPAK=false/' "$HOME/.config/bptui/config.sh"
     sed -i 's/USE_PARU=true/USE_PARU=false/' "$HOME/.config/bptui/config.sh"
@@ -52,7 +52,7 @@ function set_pkg_mngrs_values() {
     done
 }
 
-function set_options_values() {
+set_options_values() {
     sed -i 's/PRINT_PKG_INFO=true/PRINT_PKG_INFO=false/' "$HOME/.config/bptui/config.sh"
     sed -i 's/DEBUG_MODE=true/DEBUG_MODE=false/' "$HOME/.config/bptui/config.sh"
 
@@ -64,7 +64,7 @@ function set_options_values() {
     done
 }
 
-function select_options() {
+select_options() {
     clear
 
     get_pkg_mngrs_values
