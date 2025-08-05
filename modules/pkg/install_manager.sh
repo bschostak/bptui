@@ -1,11 +1,22 @@
 #!/bin/bash
 
+# source "$HOME/.config/bptui/config.sh"
+
+# source "modules/pkg/info_manager.sh"
+# source "modules/pkg/pacman_handler.sh"
+# source "modules/pkg/flatpak_handler.sh"
+# source "modules/pkg/paru_handler.sh"
+
+# TODO: Make all other sources so.
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 source "$HOME/.config/bptui/config.sh"
 
-source "modules/pkg/info_manager.sh"
-source "modules/pkg/pacman_handler.sh"
-source "modules/pkg/flatpak_handler.sh"
-source "modules/pkg/paru_handler.sh"
+source "$script_dir/info_manager.sh"
+source "$script_dir/pacman_handler.sh"
+source "$script_dir/flatpak_handler.sh"
+source "$script_dir/paru_handler.sh"
 
 function install_packages() {
   clear
