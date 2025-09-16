@@ -14,7 +14,6 @@ source "$HOME/.config/bptui/config.sh"
 source "$script_dir/pacman_handler.sh"
 source "$script_dir/flatpak_handler.sh"
 source "$script_dir/paru_handler.sh"
-[ -f "$script_dir/info_manager.sh" ] && source "$script_dir/info_manager.sh"
 
 print_banner() {
   case "$MODE" in
@@ -103,13 +102,13 @@ main() {
   case "$MODE" in
     install)
       if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
-        clear; $PRINT_PKG_INFO && print_pacman_pkg_info "${pacman_pkgs[@]}"; install_pacman_pkgs "${pacman_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
+        clear; install_pacman_pkgs "${pacman_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
       fi
       if [[ ${#flatpak_pkgs[@]} -gt 0 ]]; then
-        clear; $PRINT_PKG_INFO && print_flatpak_pkg_info "${flatpak_pkgs[@]}"; install_flatpak_pkgs "${flatpak_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
+        clear; install_flatpak_pkgs "${flatpak_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
       fi
       if [[ ${#paru_pkgs[@]} -gt 0 ]]; then
-        clear; $PRINT_PKG_INFO && print_paru_pkg_info "${paru_pkgs[@]}"; install_paru_pkgs "${paru_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
+        clear; install_paru_pkgs "${paru_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
       fi
       ;;
     remove)
@@ -124,7 +123,7 @@ main() {
       if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
         clear; downgrade_pacman_packages "${pacman_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
       fi
-      # Add similar blocks for flatpak or paru here if handlers defined
+      #TODO: Add similar blocks for flatpak or paru here if handlers defined
       ;;
   esac
 }

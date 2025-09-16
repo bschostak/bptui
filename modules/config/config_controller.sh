@@ -17,8 +17,6 @@ USE_PARU=false
 USE_YAY=false
 USE_SNAP=false
 
-PRINT_PKG_INFO=false
-
 DEBUG_MODE=false
 EOF
 

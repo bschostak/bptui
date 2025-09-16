@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: Delete this file
+
 function print_pacman_pkg_info() {
     package_names=$*
 

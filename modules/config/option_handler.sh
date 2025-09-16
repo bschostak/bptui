@@ -26,9 +26,6 @@ get_pkg_mngrs_values() {
 }
 
 get_options_values() {
-    if [[ "$PRINT_PKG_INFO" == true ]]; then
-        OPTIONS+=("is_show_pkg_info")
-    fi
     if [[ "$DEBUG_MODE" == true ]]; then
         OPTIONS+=("is_debug_mode")
     fi
@@ -72,7 +69,7 @@ select_options() {
 
     # ui_key_input -d
     echo -e "\e[4mbptui Options\e[24m"
-    declare -A options2=([is_pacman]="Enable Pacman" [is_faltpak]="Enable Flatpak" [is_paru]="Enable Paru" [is_yay]="Enable YAY" [is_snap]="Enable Snap" [is_show_pkg_info]="Show package info before installing" [is_debug_mode]="Enable Debug Mode")
+    declare -A options2=([is_pacman]="Enable Pacman" [is_faltpak]="Enable Flatpak" [is_paru]="Enable Paru" [is_yay]="Enable YAY" [is_snap]="Enable Snap" [is_debug_mode]="Enable Debug Mode")
     ui_widget_select -l -m -s "${PACKAGE_MANAGERS[@]}" "${OPTIONS[@]}" -k "${!options2[@]}" -s bar -i "${options2[@]}"
 
     # echo "Return code: $?"
