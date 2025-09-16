@@ -4,13 +4,7 @@ source "modules/config/config_controller.sh"
 source "modules/config/option_handler.sh"
 source "modules/tui/tui_controller.sh"
 
-source "modules/pkg/pacman_handler.sh"
-source "modules/pkg/flatpak_handler.sh"
-source "modules/pkg/paru_handler.sh"
-
 source "modules/pkg/update_manager.sh"
-source "modules/pkg/install_manager.sh"
-source "modules/pkg/remove_manager.sh"
 
 setup_config
 
@@ -48,7 +42,7 @@ function open_remove_pkgs_menu() {
   ui_widget_select -k remove_packages remove_pacman_all_pkgs main -i "Explicit installed" "Native installed" "Go Back"
 
   if [[ "${UI_WIDGET_RC}" == "remove_packages" ]]; then
-    remove_packages
+    bash "modules/pkg/package_manager_fascade.sh" remove
   elif [[ "${UI_WIDGET_RC}" == "remove_pacman_all_pkgs" ]]; then
     remove_pacman_all_pkgs
   elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
@@ -57,17 +51,7 @@ function open_remove_pkgs_menu() {
 }
 
 function downgrade_packages() {
-  downgrade_pacman_packages
-
-  if [ -n "$pacman_cached_packages" ]; then
-    read -p "Do you want to add packages to ignore list? (y/n): " user_input
-
-    if [[ "$user_input" == "y" ]]; then
-      ignore_packages
-    fi
-  fi
-
-  read -p "Press any key to continue..." -n 1
+  bash "modules/pkg/package_manager_fascade.sh" downgrade
 }
 
 function open_options() {
@@ -86,7 +70,7 @@ function main() {
     if [[ "${UI_WIDGET_RC}" == "open_options" ]]; then
       open_options
     elif [[ "${UI_WIDGET_RC}" == "install_packages" ]]; then
-      install_packages
+      bash "modules/pkg/package_manager_fascade.sh" install
     elif [[ "${UI_WIDGET_RC}" == "open_update_pkgs_menu" ]]; then
       open_update_pkgs_menu
     elif [[ "${UI_WIDGET_RC}" == "open_remove_pkgs_menu" ]]; then
