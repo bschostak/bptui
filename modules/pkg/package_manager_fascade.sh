@@ -44,7 +44,8 @@ case "$source" in
     fi
     ;;
   flatpak)
-    flatpak info "$pkg" 2>/dev/null | grep -i '^Description' || echo "No description found."
+    appid="$pkg"; [[ "$pkg" != *.*.* ]] && appid="$(flatpak search --columns=application "$pkg" 2>/dev/null | awk 'NR==1{print $1}')" ; 
+    flatpak remote-info flathub "$appid" 2>/dev/null | sed -n '2p' || echo "No description found."
     ;;
   paru)
     paru -Si "$pkg" 2>/dev/null | grep -E '^Description' || echo "No description found."
