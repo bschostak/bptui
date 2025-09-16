@@ -1,10 +1,12 @@
 #!/bin/bash
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 source "$HOME/.config/bptui/config.sh"
 
-source "modules/pkg/pacman_handler.sh"
-source "modules/pkg/flatpak_handler.sh"
-source "modules/pkg/paru_handler.sh"
+source "$script_dir/pacman_handler.sh"
+source "$script_dir/flatpak_handler.sh"
+source "$script_dir/paru_handler.sh"
 
 function update_all_pkgs() {
     if [[ "$USE_PACMAN" == true ]]; then
