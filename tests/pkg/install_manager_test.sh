@@ -1,7 +1,7 @@
 #!/bin/bash
 
-. ../../modules/pkg/install_manager.sh
-
+# TODO: Fix this testing code.
+# TODO: Update manager is working (copy the structure)
 
 USE_PACMAN=true
 USE_FLATPAK=true
@@ -16,7 +16,7 @@ paru() { echo "aur aurpkg"; }
 #   echo "pacman:pacpkg\nflatpak:flatpkg\nparu:aurpkg"
 # }
 
-
+. ../../modules/pkg/install_manager.sh
 
 clear() { :; }
 read() { :; }
