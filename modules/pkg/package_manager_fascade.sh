@@ -31,28 +31,11 @@ print_banner() {
 }
 
 # The preview script
-cat <<'EOF' > /tmp/pkg_preview.sh
+cat <<EOF > /tmp/pkg_preview.sh
 #!/bin/bash
-IFS=":" read -r source pkg <<< "$1"
-case "$source" in
-  pacman)
-    if [[ "$MODE" == install ]]; then
-      pacman -Si "$pkg" 2>/dev/null | grep -E '^Description' || echo "No description found."
-    else
-      pacman -Qi "$pkg" 2>/dev/null | grep -E '^Description' || echo "No description found."
-    fi
-    ;;
-  flatpak)
-    appid="$pkg"; [[ "$pkg" != *.*.* ]] && appid="$(flatpak search --columns=application "$pkg" 2>/dev/null | awk 'NR==1{print $1}')" ; 
-    flatpak remote-info flathub "$appid" 2>/dev/null | sed -n '2p' || echo "No description found."
-    ;;
-  paru)
-    paru -Si "$pkg" 2>/dev/null | grep -E '^Description' || echo "No description found."
-    ;;
-  * )
-    echo "Unknown package source."
-    ;;
-esac
+# Thin wrapper around preview_manager functions
+source "$script_dir/preview_manager.sh"
+pkg_preview_run "\$1"
 EOF
 chmod +x /tmp/pkg_preview.sh
 
