@@ -101,6 +101,9 @@ main() {
       if [[ ${#flatpak_pkgs[@]} -gt 0 ]]; then
         clear; remove_flatpak_pkgs "${flatpak_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
       fi
+      if [[ ${#paru_pkgs[@]} -gt 0 ]]; then
+        clear; remove_pacman_explicit_pkgs "${paru_pkgs[@]}"; echo -e; read -p "Press any key to continue..." -n 1
+      fi
       ;;
     downgrade)
       if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
