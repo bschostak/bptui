@@ -84,7 +84,7 @@ pkg_preview_paru() {
   tmp_desc="$(mktemp)" || { rm -f "$tmp_inst"; return 1; }
 
   (
-    if pacman -Qi "$pkg" >/dev/null 2>&1; then echo yes; else echo no; fi
+    if pacman -Qm "$pkg" >/dev/null 2>&1; then echo yes; else echo no; fi
   ) >"$tmp_inst" &
 
   (

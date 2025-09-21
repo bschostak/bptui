@@ -43,7 +43,6 @@ main() {
   clear
   print_banner
 
-  # Build the unified list and show fzf (avoid eval and ensure grouping always closes)
   pkg_list=$(
     {
       case "$MODE" in
@@ -69,7 +68,6 @@ main() {
     return
   fi
 
-  # Split by package manager
   pacman_pkgs=()
   flatpak_pkgs=()
   paru_pkgs=()
@@ -81,7 +79,6 @@ main() {
     esac
   done <<< "$pkg_list"
 
-  # Post-selection operations
   case "$MODE" in
     install)
       if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
