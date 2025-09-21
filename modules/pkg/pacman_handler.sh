@@ -16,7 +16,7 @@ function remove_pacman_explicit_pkgs() {
   packages=("$@")
 
   if [[ -n "${packages[*]}" ]]; then
-    echo "Removing selected pkgs: $packages"
+    echo "Removing selected pkgs: '${packages[*]}'"
     echo -e
     sudo pacman -Rns $(echo "${packages[@]}" | tr '\n' ' ') || echo "Some packages may not be available."
   else
@@ -33,7 +33,7 @@ function remove_pacman_all_pkgs() {
   packages=$(pacman -Q | awk '{print $1}' | fzf --multi --height 50% --border --prompt "Select packages: ")
 
   if [[ -n "$packages" ]]; then
-    echo "Removing selected pkgs: $packages"
+    echo "Removing selected pkgs: '${packages[*]}'"
     echo -e
     sudo pacman -Rns $(echo "$packages" | tr '\n' ' ') || echo "Some packages may not be available."
   else
