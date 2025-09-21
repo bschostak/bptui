@@ -5,6 +5,11 @@ script_dir="$(dirname "$(realpath "$0")")"
 folder_name=$(basename "$script_dir")
 hidden_name=".$folder_name"
 
+if [ -d "$HOME/$hidden_name" ]; then
+    rm -rf "$HOME/$hidden_name"
+    echo "The Software is already installed. Reinstalling..."
+fi
+
 cp -r "$script_dir" "$HOME/$hidden_name"
 
 rm -rf "$HOME/$hidden_name/.git"
