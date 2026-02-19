@@ -81,38 +81,75 @@ function remove_orphan_packages() {
   clear
 }
 
-#INFO: Needs refactoring
-function downgrade_pacman_packages() {
-  local packman_cached_packages=("$@")
-  local selected_versions=()
 
-  if [[ ${#packman_cached_packages[@]} -gt 0 ]]; then
-    echo -e "\e[34mFetching available versions from cache...\e[0m"
+# Downgrade a single package, with cache and online lookup, prompt for ignore
+downgrade_single_pacman_package() {
+  local pkg="$1"
+  local online_versions selected_version pkg_file current_version
 
-    for pkg in "${packman_cached_packages[@]}"; do
-      cached_versions=$(ls /var/cache/pacman/pkg/ | grep "^${pkg}-" | sort -V)
-      if [[ -n "$cached_versions" ]]; then
-        version=$(echo "$cached_versions" | fzf --height 30% --border --prompt "Select version for $pkg: ")
-        if [[ -n "$version" ]]; then
-          selected_versions+=("/var/cache/pacman/pkg/$version")
-        fi
-      else
-        echo -e "\e[31mNo cached versions found for $pkg\e[0m"
-      fi
-    done
-
-    if [[ ${#selected_versions[@]} -gt 0 ]]; then
-      echo "Downgrading selected packages..."
-      sudo pacman -U --needed "${selected_versions[@]}"
-    else
-      echo "No versions selected. Exiting."
-    fi
-  else
-    echo "No packages selected."
+  # Only lookup online versions (requires pkgctl)
+  if ! command -v pkgctl &>/dev/null; then
+    echo -e "\e[31mpkgctl is required for online lookup.\e[0m"
+    return
   fi
 
-  read -p "Press any key to continue..." -n 1
-  clear
+  online_versions=$(pkgctl repo search "$pkg" | awk -F'|' '/^AUR/ {print $3}' | sort -V)
+
+  if [[ -z "$online_versions" ]]; then
+    echo -e "\e[31mNo online versions found for $pkg\e[0m"
+    return
+  fi
+
+  current_version=$(pacman -Qi "$pkg" 2>/dev/null | awk -F': ' '/Version/ {print $2}')
+
+  selected_version=$(echo "$online_versions" | fzf --height 30% --border --prompt "[$pkg] Current: $current_version | Select online version: ")
+
+  if [[ -z "$selected_version" ]]; then
+    echo "No version selected for $pkg. Skipping."
+    return
+  fi
+
+  # Download the package archive to cache/
+  mkdir -p "cache"
+  echo "Downloading $pkg $selected_version to cache/ ..."
+  pkgctl repo download "$pkg" "$selected_version" --dest "cache/"
+
+  # Find the downloaded archive in cache/
+  pkg_file=$(find "cache/" -type f -name "${pkg}-${selected_version}-*.pkg.tar.*" | head -n 1)
+  if [[ -z "$pkg_file" ]]; then
+    echo -e "\e[31mFailed to download $pkg $selected_version to cache/\e[0m"
+    return
+  fi
+
+  echo "Downgrading $pkg to $selected_version from cache/ ..."
+  sudo pacman -U --needed "$pkg_file"
+
+  # Prompt to add to ignore list
+  read -p "Add $pkg to IgnorePkg? [y/N]: " add_ignore
+  if [[ "$add_ignore" =~ ^[Yy]$ ]]; then
+    sudo cp /etc/pacman.conf /etc/pacman.conf.bak
+    if grep -q "^IgnorePkg" /etc/pacman.conf; then
+      sudo sed -i "/^IgnorePkg/ s/$/ $pkg/" /etc/pacman.conf
+    else
+      sudo sed -i "/^#IgnorePkg/ c\IgnorePkg=$pkg" /etc/pacman.conf
+    fi
+    echo -e "\e[32m$pkg added to IgnorePkg.\e[0m"
+  fi
+}
+
+# Downgrade multiple packages, one by one
+downgrade_pacman_packages() {
+  local packman_cached_packages=("$@")
+  if [[ ${#packman_cached_packages[@]} -eq 0 ]]; then
+    echo "No packages selected."
+    return
+  fi
+  for pkg in "${packman_cached_packages[@]}"; do
+    downgrade_single_pacman_package "$pkg"
+    echo -e
+    read -p "Press any key to continue..." -n 1
+    clear
+  done
 }
 
 
