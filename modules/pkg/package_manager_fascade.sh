@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Usage: ./package_manager_fascade.sh [install|remove|downgrade]
+# Usage: ./package_manager_fascade.sh [install|remove|downgrade] [packages...]
 MODE="$1"
+shift
 
 if [[ ! " install remove downgrade " =~ " $MODE " ]]; then
-  echo "Usage: $0 [install|remove|downgrade]"
+  echo "Usage: $0 [install|remove|downgrade] [packages...]"
   exit 1
 fi
 
@@ -41,28 +42,36 @@ EOF
 chmod +x /tmp/pkg_preview.sh
 
 main() {
-  clear
-  print_banner
+  # Check if packages were passed directly as arguments (via dashboard {+})
+  if [[ $# -gt 0 ]]; then
+    pkg_list=""
+    for pkg in "$@"; do
+      pkg_list+="$pkg"$'\n'
+    done
+  else
+    clear
+    print_banner
 
-  pkg_list=$(
-    {
-      case "$MODE" in
-        install)
-          $USE_PACMAN && pacman -Sl | awk '{print "pacman:" $2}'
-          $USE_FLATPAK && flatpak remote-ls --app | awk '{print "flatpak:" $2}'
-          $USE_PARU && fetch_all_aur_packages | awk '{print "paru:" $1}'
-          ;;
-        remove)
-          $USE_PACMAN && pacman -Qen | awk '{print "pacman:" $1}'
-          $USE_FLATPAK && flatpak list | awk '{print "flatpak:" $2}'
-          $USE_PARU && paru -Qm | awk '{print "paru:" $1}'
-          ;;
-        downgrade)
-          $USE_PACMAN && pacman -Q | awk '{print "pacman:" $1}'
-          ;;
-      esac
-    } | sort -u | fzf --multi --height 60% --border --preview "MODE=$MODE /tmp/pkg_preview.sh {}" --preview-window=right:60% --prompt 'Select packages: '
-  )
+    pkg_list=$(
+      {
+        case "$MODE" in
+          install)
+            $USE_PACMAN && pacman -Sl | awk '{print "pacman:" $2}'
+            $USE_FLATPAK && flatpak remote-ls --app | awk '{print "flatpak:" $2}'
+            $USE_PARU && fetch_all_aur_packages | awk '{print "paru:" $1}'
+            ;;
+          remove)
+            $USE_PACMAN && pacman -Qen | awk '{print "pacman:" $1}'
+            $USE_FLATPAK && flatpak list | awk '{print "flatpak:" $2}'
+            $USE_PARU && paru -Qm | awk '{print "paru:" $1}'
+            ;;
+          downgrade)
+            $USE_PACMAN && pacman -Q | awk '{print "pacman:" $1}'
+            ;;
+        esac
+      } | sort -u | fzf --multi --height 60% --border --preview "MODE=$MODE /tmp/pkg_preview.sh {}" --preview-window=right:60% --prompt 'Select packages: '
+    )
+  fi
 
   if [[ -z "$pkg_list" ]]; then
     echo "No packages selected."
@@ -73,6 +82,7 @@ main() {
   flatpak_pkgs=()
   paru_pkgs=()
   while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
     case "$line" in
       pacman:*) pacman_pkgs+=("${line#pacman:}") ;;
       flatpak:*) flatpak_pkgs+=("${line#flatpak:}") ;;
@@ -112,4 +122,4 @@ main() {
   esac
 }
 
-main
+main "$@"

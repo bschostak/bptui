@@ -1,91 +1,36 @@
 #!/bin/bash
 
-source "modules/config/config_controller.sh"
-source "modules/config/option_handler.sh"
-source "modules/tui/tui_controller.sh"
+# ==============================================================================
+# BPTUI - Arch Linux Package Management TUI
+# Main Entry Point
+# ==============================================================================
 
-source "modules/pkg/update_manager.sh"
+# Ensure it's run from an actual terminal (interactive session)
+if [ ! -t 0 ]; then
+    echo "Error: This script must be run interactively from a terminal."
+    exit 1
+fi
 
-setup_config
+# Resolve base project directory
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source "$HOME/.config/bptui/config.sh"
+# --- 1. Dependency Checks ---
+command -v tput >/dev/null 2>&1 || { echo "Error: 'tput' is required but not installed."; exit 1; }
+command -v pacman >/dev/null 2>&1 || { echo "Error: This tool is designed for Arch-based systems (pacman missing)."; exit 1; }
 
-function print_logo() {
-  echo -e "\n\e[1;36m"
-  echo "██████╗ ██████╗ ████████╗██╗   ██╗██╗"
-  echo "██╔══██╗██╔══██╗╚══██╔══╝██║   ██║██║"
-  echo "██████╔╝██████╔╝   ██║   ██║   ██║██║"
-  echo "██╔══██╗██╔═══╝    ██║   ██║   ██║██║"
-  echo "██████╔╝██║        ██║   ╚██████╔╝██║"
-  echo "╚═════╝ ╚═╝        ╚═╝    ╚═════╝ ╚═╝"
-  echo -e "\e[0m"
+# --- 2. Source Required Modules ---
+MODULES_DIR="$PROJECT_ROOT/modules"
+
+if [[ -f "$MODULES_DIR/tui/dashboard_controller.sh" ]]; then
+    source "$MODULES_DIR/tui/dashboard_controller.sh"
+else
+    echo "Error: Dashboard controller not found at $MODULES_DIR/tui/dashboard_controller.sh"
+    exit 1
+fi
+
+# --- 3. Main Execution ---
+main() {
+    run_dashboard
 }
 
-function open_update_pkgs_menu() {
-  clear
-
-  echo -e "\e[4mType Of Updates\e[24m"
-  ui_widget_select -k update_all_pkgs update_specific_pkgs main -i "Update All Packages" "Update Specific Packages" "Go Back"
-  if [[ "${UI_WIDGET_RC}" == "update_all_pkgs" ]]; then
-    update_all_pkgs
-  elif [[ "${UI_WIDGET_RC}" == "update_specific_pkgs" ]]; then
-    update_specific_pkgs
-  elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
-    return
-  fi
-}
-
-function open_remove_pkgs_menu() {
-  clear
-
-  echo -e "\e[4mRemove Packages\e[24m"
-  ui_widget_select -k remove_packages remove_pacman_all_pkgs main -i "Explicit installed" "Native installed" "Go Back"
-
-  if [[ "${UI_WIDGET_RC}" == "remove_packages" ]]; then
-    bash "modules/pkg/package_manager_fascade.sh" remove
-  elif [[ "${UI_WIDGET_RC}" == "remove_pacman_all_pkgs" ]]; then
-    remove_pacman_all_pkgs
-  elif [[ "${UI_WIDGET_RC}" == "main" ]]; then
-    return
-  fi
-}
-
-function downgrade_packages() {
-  bash "modules/pkg/package_manager_fascade.sh" downgrade
-}
-
-function open_options() {
-  select_options
-  read -p "Press any key to continue..." -n 1
-}
-
-function main() {
-  while true; do
-    clear
-
-    print_logo
-    echo -e "\e[4mSelect Action\e[24m"
-    ui_widget_select -k install_packages open_update_pkgs_menu open_remove_pkgs_menu downgrade_packages open_options exit_app -i "Install Package/s" "Update Package/s" "Remove Package/s" "Downgrade Package/s" "Options" "Exit"
-
-    if [[ "${UI_WIDGET_RC}" == "open_options" ]]; then
-      open_options
-    elif [[ "${UI_WIDGET_RC}" == "install_packages" ]]; then
-      bash "modules/pkg/package_manager_fascade.sh" install
-    elif [[ "${UI_WIDGET_RC}" == "open_update_pkgs_menu" ]]; then
-      open_update_pkgs_menu
-    elif [[ "${UI_WIDGET_RC}" == "open_remove_pkgs_menu" ]]; then
-      open_remove_pkgs_menu
-    elif [[ "${UI_WIDGET_RC}" == "downgrade_packages" ]]; then
-      downgrade_packages
-    elif [[ "${UI_WIDGET_RC}" == "exit_app" ]]; then
-      clear
-      echo "Exiting application..."
-      exit 0
-    fi
-
-    # echo "Return code: $?"
-    # echo "Selected key: ${UI_WIDGET_RC}";
-  done
-}
-
-main
+main "$@"
