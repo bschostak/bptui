@@ -91,11 +91,12 @@ EOF
       --multi \
       --height=85% \
       --border \
-      --header="[TAB] Multi-select | [F5] Toggle View ($mode) | [F1] Install | [F2] Remove | [F3] Update | [F4] Downgrade | [F7] Options | [F6] Quit" \
+      --header="[TAB] Multi-select | [F5] Toggle View ($mode) | [F1] Install | [F2] Remove | [F3] Update | [F4] Downgrade | [F6] Options | [ESC] Quit" \
       --header-first \
       --prompt="Mode: $mode > " \
       --preview="MODE=$mode /tmp/pkg_preview.sh {}" \
       --preview-window=down:30%:wrap \
+      --bind="enter:ignore" \
       --bind="f5:execute(
           current=\$(cat $MODE_FILE);
           if [ \"\$current\" = 'online' ]; then
@@ -105,12 +106,12 @@ EOF
           fi;
           touch /tmp/bptui_toggled
         )+abort" \
-      --bind="f7:execute(clear; touch /tmp/bptui_options)+abort" \
+      --bind="f6:execute(clear; touch /tmp/bptui_options)+abort" \
       --bind="f3:execute(clear; touch /tmp/bptui_update)+abort" \
       --bind="f1:execute(clear; bash modules/pkg/package_manager_fascade.sh install {+})" \
       --bind="f2:execute(clear; bash modules/pkg/package_manager_fascade.sh remove {+})" \
       --bind="f4:execute(clear; bash modules/pkg/package_manager_fascade.sh downgrade {+})" \
-      --bind="f6:abort" \
+      --bind="f7:abort" \
       --layout=reverse
     )
 
@@ -128,7 +129,7 @@ EOF
       continue
     fi
 
-    # Handle F7 Options trigger
+    # Handle F6 Options trigger
     if [[ -f /tmp/bptui_options ]]; then
       rm -f /tmp/bptui_options
       if declare -F open_options &>/dev/null; then
