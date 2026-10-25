@@ -94,7 +94,7 @@ run_dashboard() {
     selected=$(get_packages | fzf \
       --ansi \
       --multi \
-      --height=85% \
+      --height=100% \
       --border \
       --header="[TAB] Multi-select | [F5] Toggle View ($mode) | [F1] Install | [F2] Remove | [F3] Update | [F4] Downgrade | [F6] Options | [ESC] Quit" \
       --footer="Hold SHIFT to select" \
