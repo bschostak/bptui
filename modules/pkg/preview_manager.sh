@@ -65,7 +65,7 @@ pkg_preview_flatpak() {
     [[ -n "$found" ]] && appid="$found"
   fi
 
-  local tmp_data installed version size url desc
+  local tmp_data installed version size url desc ref date license flathub_link
   tmp_data="$(mktemp)" || return 1
 
   (
@@ -82,6 +82,10 @@ pkg_preview_flatpak() {
   version="$(grep -i "^[[:space:]]*Version:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
   size="$(grep -iE "^[[:space:]]*(Download size|Installed size):" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
   url="$(grep -i "^[[:space:]]*Homepage:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  ref="$(grep -i "^[[:space:]]*Ref:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  date="$(grep -i "^[[:space:]]*Date:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  license="$(grep -i "^[[:space:]]*License:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  flathub_link="https://flathub.org/apps/$appid"
   desc="$(flatpak remote-info flathub "$appid" 2>/dev/null | awk 'NR==2{print; exit}' || flatpak info "$appid" 2>/dev/null | awk 'NR==2{print; exit}')"
 
   rm -f "$tmp_data"
@@ -89,8 +93,12 @@ pkg_preview_flatpak() {
   pkg_preview_status_line "$installed"
   echo -e "${CYAN}Description:${RESET} ${desc:-No description found.}"
   [[ -n "$version" ]] && echo -e "${CYAN}Version:${RESET} $version"
+  [[ -n "$ref" ]] && echo -e "${CYAN}Ref:${RESET} $ref"
+  [[ -n "$date" ]] && echo -e "${CYAN}Date:${RESET} $date"
+  [[ -n "$license" ]] && echo -e "${CYAN}License:${RESET} $license"
   [[ -n "$size" ]] && echo -e "${CYAN}Size:${RESET} $size"
   [[ -n "$url" ]] && echo -e "${CYAN}URL:${RESET} $url"
+  [[ -n "$flathub_link" ]] && echo -e "${CYAN}Flathub Link:${RESET} $flathub_link"
 }
 
 pkg_preview_paru() {
