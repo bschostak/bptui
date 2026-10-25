@@ -7,7 +7,7 @@
 MODE_FILE="/tmp/bptui_mode"
 [[ -f "$MODE_FILE" ]] || echo "online" > "$MODE_FILE"
 
-# Robust absolute path resolution for sourcing handlers based on your tree structure
+# Robust absolute path resolution for sourcing handlers based on your tree structure[cite: 1]
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
 
@@ -47,7 +47,7 @@ get_packages() {
     case "$mode" in
       online)
         $USE_PACMAN && pacman -Sl 2>/dev/null | awk '{print "pacman:" $2}'
-        $USE_FLATPAK && flatpak list --app --columns=application 2>/dev/null | awk '{print "flatpak:" $1}'
+        $USE_FLATPAK && flatpak remote-ls --app --columns=application 2>/dev/null | awk '{print "flatpak:" $1}'
         if $USE_PARU && declare -F fetch_all_aur_packages &>/dev/null; then
           fetch_all_aur_packages 2>/dev/null | awk '{print "paru:" $1}'
         elif $USE_PARU && command -v paru &>/dev/null; then
