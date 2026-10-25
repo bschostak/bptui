@@ -97,6 +97,7 @@ run_dashboard() {
       --height=85% \
       --border \
       --header="[TAB] Multi-select | [F5] Toggle View ($mode) | [F1] Install | [F2] Remove | [F3] Update | [F4] Downgrade | [F6] Options | [ESC] Quit" \
+      --footer="Hold SHIFT to select" \
       --header-first \
       --prompt="Mode: $mode > " \
       --preview="MODE=$mode $PREVIEW_WRAPPER {}" \
