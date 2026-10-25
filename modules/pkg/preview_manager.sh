@@ -2,6 +2,7 @@
 
 GREEN="\e[32m"
 RED="\e[31m"
+CYAN="\e[36m"
 RESET="\e[0m"
 
 pkg_preview_status_line() {
@@ -15,30 +16,43 @@ pkg_preview_status_line() {
 
 pkg_preview_pacman() {
   local mode="$1" pkg="$2"
-  local tmp_inst tmp_desc installed desc
+  local tmp_data installed version size install_reason install_date url deps conflicts required_by desc
 
-  tmp_inst="$(mktemp)" || return 1
-  tmp_desc="$(mktemp)" || { rm -f "$tmp_inst"; return 1; }
-
-  (
-    if pacman -Qi "$pkg" >/dev/null 2>&1; then echo yes; else echo no; fi
-  ) >"$tmp_inst" &
+  tmp_data="$(mktemp)" || return 1
 
   (
-    LC_ALL=C pacman -Si "$pkg" 2>/dev/null | awk '$0 ~ /^[[:space:]]*Description[[:space:]]*:/ { sub(/^[[:space:]]*Description[[:space:]]*:[[:space:]]*/, "", $0); print "Description: " $0; found=1; exit } END { if(!found) exit 1 }' \
-    || LC_ALL=C pacman -Qi "$pkg" 2>/dev/null | awk '$0 ~ /^[[:space:]]*Description[[:space:]]*:/ { sub(/^[[:space:]]*Description[[:space:]]*:[[:space:]]*/, "", $0); print "Description: " $0; found=1; exit } END { if(!found) exit 1 }' \
-    || echo "Description: No description found."
-  ) >"$tmp_desc" &
+    if pacman -Qi "$pkg" >/dev/null 2>&1; then
+      echo "INSTALLED:yes"
+      pacman -Qi "$pkg" 2>/dev/null
+    else
+      echo "INSTALLED:no"
+      pacman -Si "$pkg" 2>/dev/null
+    fi
+  ) > "$tmp_data"
 
-  wait
+  installed="$(grep "^INSTALLED:" "$tmp_data" | cut -d: -f2)"
+  version="$(grep -i "^[[:space:]]*Version" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  size="$(grep -iE "^[[:space:]]*(Installed Size|Download Size)" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  install_reason="$(grep -i "^[[:space:]]*Install Reason" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  install_date="$(grep -iE "^[[:space:]]*(Install Date|Build Date)" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  url="$(grep -i "^[[:space:]]*URL" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  deps="$(grep -i "^[[:space:]]*Depends On" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  conflicts="$(grep -i "^[[:space:]]*Conflicts With" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  required_by="$(grep -i "^[[:space:]]*Required By" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  desc="$(grep -i "^[[:space:]]*Description" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
 
-  installed="$(<"$tmp_inst")"
-  desc="$(<"$tmp_desc")"
-
-  rm -f "$tmp_inst" "$tmp_desc"
+  rm -f "$tmp_data"
 
   pkg_preview_status_line "$installed"
-  echo "$desc"
+  echo -e "${CYAN}Description:${RESET} ${desc:-No description found.}"
+  [[ -n "$version" ]] && echo -e "${CYAN}Version:${RESET} $version"
+  [[ -n "$size" ]] && echo -e "${CYAN}Size:${RESET} $size"
+  [[ -n "$url" ]] && echo -e "${CYAN}URL:${RESET} $url"
+  [[ -n "$install_date" ]] && echo -e "${CYAN}Install Date:${RESET} $install_date"
+  [[ -n "$install_reason" ]] && echo -e "${CYAN}Install Reason:${RESET} $install_reason"
+  [[ -n "$deps" && "$deps" != "None" ]] && echo -e "${CYAN}Dependencies:${RESET} $deps"
+  [[ -n "$conflicts" && "$conflicts" != "None" ]] && echo -e "${CYAN}Conflicts:${RESET} $conflicts"
+  [[ -n "$required_by" && "$required_by" != "None" ]] && echo -e "${CYAN}Required By:${RESET} $required_by"
 }
 
 pkg_preview_flatpak() {
@@ -51,58 +65,73 @@ pkg_preview_flatpak() {
     [[ -n "$found" ]] && appid="$found"
   fi
 
-  local tmp_inst tmp_desc installed desc
-  tmp_inst="$(mktemp)" || return 1
-  tmp_desc="$(mktemp)" || { rm -f "$tmp_inst"; return 1; }
+  local tmp_data installed version size url desc
+  tmp_data="$(mktemp)" || return 1
 
   (
-    if flatpak list --app --columns=application 2>/dev/null | grep -Fxq "$appid"; then echo yes; else echo no; fi
-  ) >"$tmp_inst" &
+    if flatpak list --app --columns=application 2>/dev/null | grep -Fxq "$appid"; then
+      echo "INSTALLED:yes"
+      flatpak info "$appid" 2>/dev/null
+    else
+      echo "INSTALLED:no"
+      flatpak remote-info flathub "$appid" 2>/dev/null
+    fi
+  ) > "$tmp_data"
 
-  (
-    flatpak remote-info flathub "$appid" 2>/dev/null | awk 'NR==2{print "Description: " $0; found=1} END{ if(!found) exit 1 }' \
-    || flatpak info "$appid" 2>/dev/null | awk 'NR==2{print "Description: " $0; found=1} END{ if(!found) exit 1 }' \
-    || echo "Description: No description found."
-  ) >"$tmp_desc" &
+  installed="$(grep "^INSTALLED:" "$tmp_data" | cut -d: -f2)"
+  version="$(grep -i "^[[:space:]]*Version:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  size="$(grep -iE "^[[:space:]]*(Download size|Installed size):" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  url="$(grep -i "^[[:space:]]*Homepage:" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  desc="$(flatpak remote-info flathub "$appid" 2>/dev/null | awk 'NR==2{print; exit}' || flatpak info "$appid" 2>/dev/null | awk 'NR==2{print; exit}')"
 
-  wait
-
-  installed="$(<"$tmp_inst")"
-  desc="$(<"$tmp_desc")"
-
-  rm -f "$tmp_inst" "$tmp_desc"
+  rm -f "$tmp_data"
 
   pkg_preview_status_line "$installed"
-  echo "$desc"
+  echo -e "${CYAN}Description:${RESET} ${desc:-No description found.}"
+  [[ -n "$version" ]] && echo -e "${CYAN}Version:${RESET} $version"
+  [[ -n "$size" ]] && echo -e "${CYAN}Size:${RESET} $size"
+  [[ -n "$url" ]] && echo -e "${CYAN}URL:${RESET} $url"
 }
 
 pkg_preview_paru() {
   local mode="$1" pkg="$2"
-  local tmp_inst tmp_desc installed desc
+  local tmp_data installed version size install_reason install_date url deps conflicts required_by desc
 
-  tmp_inst="$(mktemp)" || return 1
-  tmp_desc="$(mktemp)" || { rm -f "$tmp_inst"; return 1; }
-
-  (
-    if pacman -Qm "$pkg" >/dev/null 2>&1; then echo yes; else echo no; fi
-  ) >"$tmp_inst" &
+  tmp_data="$(mktemp)" || return 1
 
   (
-    LC_ALL=C paru -Si "$pkg" 2>/dev/null | awk '$0 ~ /^[[:space:]]*Description[[:space:]]*:/ { sub(/^[[:space:]]*Description[[:space:]]*:[[:space:]]*/, "", $0); print "Description: " $0; found=1; exit } END { if(!found) exit 1 }' \
-    || LC_ALL=C pacman -Si "$pkg" 2>/dev/null | awk '$0 ~ /^[[:space:]]*Description[[:space:]]*:/ { sub(/^[[:space:]]*Description[[:space:]]*:[[:space:]]*/, "", $0); print "Description: " $0; found=1; exit } END { if(!found) exit 1 }' \
-    || LC_ALL=C pacman -Qi "$pkg" 2>/dev/null | awk '$0 ~ /^[[:space:]]*Description[[:space:]]*:/ { sub(/^[[:space:]]*Description[[:space:]]*:[[:space:]]*/, "", $0); print "Description: " $0; found=1; exit } END { if(!found) exit 1 }' \
-    || echo "Description: No description found."
-  ) >"$tmp_desc" &
+    if pacman -Qm "$pkg" >/dev/null 2>&1; then
+      echo "INSTALLED:yes"
+      pacman -Qi "$pkg" 2>/dev/null || paru -Qi "$pkg" 2>/dev/null
+    else
+      echo "INSTALLED:no"
+      paru -Si "$pkg" 2>/dev/null || pacman -Si "$pkg" 2>/dev/null
+    fi
+  ) > "$tmp_data"
 
-  wait
+  installed="$(grep "^INSTALLED:" "$tmp_data" | cut -d: -f2)"
+  version="$(grep -i "^[[:space:]]*Version" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  size="$(grep -iE "^[[:space:]]*(Installed Size|Download Size)" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  install_reason="$(grep -i "^[[:space:]]*Install Reason" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  install_date="$(grep -iE "^[[:space:]]*(Install Date|Build Date)" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  url="$(grep -i "^[[:space:]]*URL" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  deps="$(grep -i "^[[:space:]]*(Depends On|Dependencies)" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  conflicts="$(grep -i "^[[:space:]]*Conflicts With" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  required_by="$(grep -i "^[[:space:]]*Required By" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
+  desc="$(grep -i "^[[:space:]]*Description" "$tmp_data" | head -n1 | cut -d':' -f2- | xargs)"
 
-  installed="$(<"$tmp_inst")"
-  desc="$(<"$tmp_desc")"
-
-  rm -f "$tmp_inst" "$tmp_desc"
+  rm -f "$tmp_data"
 
   pkg_preview_status_line "$installed"
-  echo "$desc"
+  echo -e "${CYAN}Description:${RESET} ${desc:-No description found.}"
+  [[ -n "$version" ]] && echo -e "${CYAN}Version:${RESET} $version"
+  [[ -n "$size" ]] && echo -e "${CYAN}Size:${RESET} $size"
+  [[ -n "$url" ]] && echo -e "${CYAN}URL:${RESET} $url"
+  [[ -n "$install_date" ]] && echo -e "${CYAN}Install Date:${RESET} $install_date"
+  [[ -n "$install_reason" ]] && echo -e "${CYAN}Install Reason:${RESET} $install_reason"
+  [[ -n "$deps" && "$deps" != "None" ]] && echo -e "${CYAN}Dependencies:${RESET} $deps"
+  [[ -n "$conflicts" && "$conflicts" != "None" ]] && echo -e "${CYAN}Conflicts:${RESET} $conflicts"
+  [[ -n "$required_by" && "$required_by" != "None" ]] && echo -e "${CYAN}Required By:${RESET} $required_by"
 }
 
 pkg_preview_dispatch() {

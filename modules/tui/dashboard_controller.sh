@@ -1,9 +1,4 @@
 #!/bin/bash
-
-# ==============================================================================
-# BPTUI - Dashboard Controller with Clean Terminal Refresh, Descriptions, Options & Updates
-# ==============================================================================
-
 # --- Configuration & Paths ---
 MODE_FILE="/tmp/bptui_mode"
 PREVIEW_WRAPPER="/tmp/pkg_preview.sh"
